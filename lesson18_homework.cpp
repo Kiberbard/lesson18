@@ -37,6 +37,7 @@ class Base_circle{
 			circleMath(m_r);
 			return result;
 		}
+		virtual ~Base_circle() {}//для корректного удаления наследников
 		
 };
 
@@ -63,10 +64,27 @@ class CalcVolume : public Base_circle{
 	private:
 		virtual void circleMath(float r){
 			m_r = r;
-			result = (4/3)*m_PI*m_r*m_r*m_r;
+			result = (4.0f/3.0f)*m_PI*m_r*m_r*m_r;
 		}
 	public:
 		CalcVolume(float m) : Base_circle(m) {}
+};
+
+class Factory{
+	public:
+		enum operation {
+			LENGTH = 1,
+			AREA = 2,
+			VOLUME = 3
+		};
+		static Base_circle *createCircleMath(float radius, operation op){
+			switch(op){
+				case LENGTH: {return new CalcLength(radius);}
+				case AREA: {return new CalcArea(radius);}
+				case VOLUME: {return new CalcVolume(radius);}
+				default: throw std::invalid_argument("invalid operation");
+			}
+		}
 };
 		
 void showResult( Base_circle &circle){
@@ -89,15 +107,15 @@ int main(){
 	std::cin>>r;
 
 	do{
-		std::cout<<"выберите действие длина окружности - 1, площадь - 2, объём - 3: \n";
+		std::cout << "Выберите действие:\n"
+                  << "1 - длина окружности\n"
+                  << "2 - площадь\n"
+                  << "3 - объём\n";
 		std::cin>>op;
 	}while(op < 1 || op > 3);
-	Base_circle *base = nullptr;
-	switch(op){
-		case 1: {CalcLength l(r); base = &l; break;}
-		case 2: {CalcArea ar(r); base = &ar; break;}
-		case 3: {CalcVolume vol(r); base = &vol; break;}
-	}
-	showResult(*base);//разыменовали т.к. передаём по ссылке
+
+	Base_circle *circle_operation = Factory::createCircleMath(r, static_cast<Factory::operation>(op));
+	showResult(*circle_operation);//разыменовали т.к. передаём по ссылке
+	delete circle_operation;
 	return 0;
 }
